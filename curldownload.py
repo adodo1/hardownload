@@ -5,6 +5,7 @@ import os, sys, json, time, requests, shlex
 import socket, threading, Queue
 from threading import Thread
 from optparse import OptionParser
+from urlparse import urlparse, urlunparse, parse_qs, parse_qsl
 
 mutex = threading.Lock()        # 线程锁
 socket.setdefaulttimeout(20)    # 连接超时
@@ -83,6 +84,7 @@ class Spider:
 def GetParas(commandstr):
     # 解析一条命令行
     try:
+        if (commandstr.strip()==''): return None
         opt = OptionParser()
         opt.add_option('-H', dest='headers', action='append', type=str)
         opt.add_option('-X', dest='method', type=str)
@@ -108,16 +110,45 @@ def GetData(url, options):
     # 获取数据
     try:
         # 只处理 http 和 https 开头的协议
-        if (url.lower().startswith('http://') or
-            url.lower().startswith('https://')): raise Exception('unknow protocol.')
+        if (url.lower().startswith('http://') == False and
+            url.lower().startswith('https://') == False): raise Exception('unknow protocol.')
         # 解析 option 参数
-
+        urlo = urlparse(url)
+        dir1 = FixToPath(urlo.netloc)
+        dir2 = FixToPath(urlo.path, False)
+        dir3 = FixToPath(urlo.query)
+        #
+        if (dir2 == '' and dir3 == ''): dir1 = dir1 + '/'
+        if (dir3 != ''): dir3 = '$' + dir3
+        fullname = './out/' + dir1 + dir2 + dir3
+        if (fullname.endswith('/')): fullname = fullname + '_index.html'
+        #
+        dname, fname = os.path.split(fullname)
+        #print 'dir: %s | name: %s' % (dname, fname)
+        if (os.path.exists(dname) == False): os.makedirs(dname)
+        f = open(fullname, 'w')
+        f.write('a')
+        f.close()
 
 
     except Exception as ex:
         print("exception :{0}".format(str(ex)))
         return None
 
+def FixToPath(text, full=True):
+    # 将URL中不符合命名的字符串替换掉
+    text = text.replace(':', '#')
+    text = text.replace('|', '+')
+    text = text.replace('"', '+')
+    text = text.replace('>', '+')
+    text = text.replace('<', '+')
+    text = text.replace('*', '+')
+    text = text.replace('?', '+')
+    #
+    if full:
+        text = text.replace('/', '+')
+        text = text.replace('\\', '+')
+    return text
 
 ##########################################################################
 if __name__ == '__main__':
@@ -127,6 +158,9 @@ if __name__ == '__main__':
     print 'Encode: %s' %  sys.getdefaultencoding()
 
     # https://www.cnblogs.com/emily-qin/p/6126975.html
+    outdir = './out'
+    if (os.path.exists(outdir)==False):
+        os.makedirs(outdir)
 
     fname = 'test.txt'
     f = open(fname, 'r')
@@ -141,8 +175,10 @@ if __name__ == '__main__':
         results.append(info)
 
     #
-    pass
-
+    for info in results:
+        #
+        url, options = info
+        GetData(url, options)
 
 
     #
