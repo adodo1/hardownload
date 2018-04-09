@@ -85,8 +85,9 @@ class Spider:
             self._num = self._num + 1
             global _tasks
             uhash = hash((url, str(options)))     # 哈希值
-            if (uhash in _tasks): return True     # 如果存在返回
             mutex.release()
+            if (uhash in _tasks): return True     # 如果存在返回
+
 
 
             # 只处理 http 和 https 开头的协议
@@ -234,13 +235,13 @@ if __name__ == '__main__':
     if (os.path.exists(outdir)==False):
         os.makedirs(outdir)
     # 读取任务列表
-    fname = './test_more.txt'
+    fname = './test.txt'
     f = open(fname, 'r')
     text = f.read()
     f.close()
     lines = text.splitlines()
     # 最大线程
-    maxThreads = 16
+    maxThreads = 20
 
     # 尝试读取进度表
     global _tasks
