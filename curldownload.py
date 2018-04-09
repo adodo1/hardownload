@@ -88,8 +88,6 @@ class Spider:
             mutex.release()
             if (uhash in _tasks): return True     # 如果存在返回
 
-
-
             # 只处理 http 和 https 开头的协议
             if (url.lower().startswith('http://') == False and
                 url.lower().startswith('https://') == False): raise Exception('unknow protocol.')
@@ -252,9 +250,6 @@ if __name__ == '__main__':
         text = f.read()
         tlines = text.splitlines()
         for line in tlines: _tasks.add(line)
-    #
-
-
 
     #
     results = []
@@ -263,17 +258,16 @@ if __name__ == '__main__':
         if info == None: continue
         results.append(info)
 
-    #
+    # 单线程调试
     # spider = Spider(outdir, tname)
     # for info in results:
     #     #
     #     url, options = info
     #     spider.GetData(url, options)
 
-
+    # 多线程工作
     spider = Spider(outdir, tname)
     spider.Work(results, maxThreads)
-
 
     #
     print 'OK.'
